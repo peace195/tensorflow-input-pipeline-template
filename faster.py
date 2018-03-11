@@ -6,6 +6,20 @@ import threading
 from PIL import Image as pil_image
 import random
 
+def load_image(addr):
+    image = pil_image.open(addr)
+    image = np.asarray(image.resize((227, 227), pil_image.ANTIALIAS), dtype=np.float32)
+    return image
+
+
+def _int64_feature(value):
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+
+def _bytes_feature(value):
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+# Export data to TFRecords file
 
 train_filename = 'train.tfrecords'  # address to save the TFRecords file
 # open the TFRecords file
@@ -52,20 +66,6 @@ writer.close()
 sys.stdout.flush()
 
 
-def load_image(addr):
-    image = pil_image.open(addr)
-    image = np.asarray(image.resize((227, 227), pil_image.ANTIALIAS), dtype=np.float32)
-    return image
-
-
-def _int64_feature(value):
-  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
-
-def _bytes_feature(value):
-  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
-
-
 def read_tfrecords_file(input_queue, feature, type):
     # Define a reader and read the next record
     reader = tf.TFRecordReader()
@@ -83,6 +83,8 @@ def run_model(train_path, test_path, iter):
     nb_epoch = 40
     graph = tf.Graph()
     with graph.as_default():
+        # Begin input pipeline
+
         feature = {'train/image': tf.FixedLenFeature([], tf.string),
                'train/label': tf.FixedLenFeature([], tf.int64)}
         # Create a list of filenames and pass it to a queue
@@ -99,6 +101,8 @@ def run_model(train_path, test_path, iter):
         filename_queue_test = tf.train.string_input_producer(test_path, num_epochs=1)
         data_batch_test, label_batch_test = tf.train.batch(read_tfrecords_file(filename_queue_test, feature_test, 'test/'), batch_size=10)
 
+        # End input pipeline
+        # Modeling
         conv1W = tf.Variable(net_data["conv1"][0])
         conv1b = tf.Variable(net_data["conv1"][1])
         conv2W = tf.Variable(net_data["conv2"][0])

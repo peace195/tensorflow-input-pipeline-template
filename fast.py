@@ -11,6 +11,8 @@ def run_model(train_path, test_path, iter):
     nb_epoch = 40
     graph = tf.Graph()
     with graph.as_default():
+        # Begin input pipeline
+
         y_test, y_train = dense_to_one_hot(np.asarray(test_labels), num_classes), dense_to_one_hot(np.asarray(train_labels), num_classes)
         x_test, x_train = test_addrs, train_addrs
 
@@ -31,6 +33,8 @@ def run_model(train_path, test_path, iter):
                                                               capacity=5000, min_after_dequeue=1000,
                                                               allow_smaller_final_batch=True)
 
+        # End input pipeline
+        # Modeling
         conv1W = tf.Variable(net_data["conv1"][0])
         conv1b = tf.Variable(net_data["conv1"][1])
         conv2W = tf.Variable(net_data["conv2"][0])
